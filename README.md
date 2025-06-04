@@ -1,6 +1,18 @@
 # Ai
-to help me
+Simple 2D open-world multiplayer strategy game example.
 
-## Game
+## Requirements
+Install dependencies with `pip install -r requirements.txt`.
 
-Run `python game.py` to play a simple number guessing game.
+## Server
+Run the server:
+```bash
+python server.py
+```
+
+## Client
+Start one or more clients (in separate terminals) after the server is running:
+```bash
+python client.py
+```
+Use the arrow keys to move your player around the world.
