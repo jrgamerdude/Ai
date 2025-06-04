@@ -9,7 +9,7 @@ HEIGHT = 1000
 players = {}
 
 async def notify_state():
-    state = {ws_id: {'x': pos[0], 'y': pos[1]} for ws_id, pos in players.items()}
+    state = {str(id(ws)): {'x': pos[0], 'y': pos[1]} for ws, pos in players.items()}
     if players:
         msg = json.dumps({'players': state})
         await asyncio.wait([ws.send(msg) for ws in players])
