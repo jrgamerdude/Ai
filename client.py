@@ -10,6 +10,8 @@ class Client:
     def __init__(self, uri):
         self.uri = uri
         self.players = {}
+        self.player_id = None
+        self.available_commands = {}
         self.x = 0
         self.y = 0
         pygame.init()
@@ -18,7 +20,7 @@ class Client:
         self.clock = pygame.time.Clock()
 
     async def send_move(self, websocket, move):
-        await websocket.send(json.dumps({'move': move}))
+        await websocket.send(json.dumps({'type': 'move', 'direction': move}))
 
     async def run(self):
         async with websockets.connect(self.uri) as websocket:
@@ -26,12 +28,23 @@ class Client:
             async def receiver():
                 async for message in websocket:
                     data = json.loads(message)
-                    self.players = data.get('players', {})
-                    # Update own position
-                    ws_id = str(id(websocket))
-                    if ws_id in self.players:
-                        self.x = self.players[ws_id]['x']
-                        self.y = self.players[ws_id]['y']
+                    msg_type = data.get('type')
+                    if msg_type == 'welcome':
+                        self.player_id = data.get('playerId')
+                        self.available_commands = data.get('commands', {})
+                        if self.available_commands:
+                            print('Available commands:')
+                            for name, description in self.available_commands.items():
+                                print(f" - {name}: {description}")
+                    elif msg_type == 'state':
+                        self.players = data.get('players', {})
+                        if self.player_id and self.player_id in self.players:
+                            self.x = self.players[self.player_id]['x']
+                            self.y = self.players[self.player_id]['y']
+                    elif msg_type == 'error':
+                        print(f"Server error: {data.get('message')}")
+                    elif msg_type == 'pong':
+                        print('Received pong from server', data.get('echo', ''))
 
             recv_task = asyncio.create_task(receiver())
             running = True
@@ -55,7 +68,7 @@ class Client:
                 offset_y = HEIGHT // 2 - self.y
                 # Draw players
                 for ws_id, pos in self.players.items():
-                    color = (255, 0, 0) if ws_id == str(id(websocket)) else (0, 255, 0)
+                    color = (255, 0, 0) if self.player_id and ws_id == self.player_id else (0, 255, 0)
                     pygame.draw.circle(
                         self.screen,
                         color,
