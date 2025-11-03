@@ -15,7 +15,7 @@ HEIGHT = 1000
 class Command:
     """Represents a command that can be executed by the server."""
 
-    handler: Callable[["MultiPurposeServer", websockets.WebSocketServerProtocol, dict], Awaitable[None]]
+    handler: Callable[[websockets.WebSocketServerProtocol, dict], Awaitable[None]]
     description: str
 
 
@@ -28,7 +28,7 @@ class CommandRegistry:
     def register(
         self,
         name: str,
-        handler: Callable[["MultiPurposeServer", websockets.WebSocketServerProtocol, dict], Awaitable[None]],
+        handler: Callable[[websockets.WebSocketServerProtocol, dict], Awaitable[None]],
         *,
         description: str,
     ) -> None:
@@ -110,7 +110,7 @@ class MultiPurposeServer:
             await self._send_error(websocket, f"Unknown command '{command_name}'.")
             return
 
-        await command.handler(self, websocket, data)
+        await command.handler(websocket, data)
 
     # ------------------------------------------------------------------
     # Command handlers
