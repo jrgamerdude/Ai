@@ -16,3 +16,6 @@ Start one or more clients (in separate terminals) after the server is running:
 python client.py
 ```
 Use the arrow keys to move your player around the world.
+
+## AI
+The server spawns a large AI-controlled boss that roams the world without relying on any external models.
