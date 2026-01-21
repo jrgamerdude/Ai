@@ -10,6 +10,8 @@ class Client:
     def __init__(self, uri):
         self.uri = uri
         self.players = {}
+        self.ais = {}
+        self.self_id = None
         self.x = 0
         self.y = 0
         pygame.init()
@@ -27,11 +29,12 @@ class Client:
                 async for message in websocket:
                     data = json.loads(message)
                     self.players = data.get('players', {})
+                    self.ais = data.get('ais', {})
+                    self.self_id = data.get('self_id')
                     # Update own position
-                    ws_id = str(id(websocket))
-                    if ws_id in self.players:
-                        self.x = self.players[ws_id]['x']
-                        self.y = self.players[ws_id]['y']
+                    if self.self_id in self.players:
+                        self.x = self.players[self.self_id]['x']
+                        self.y = self.players[self.self_id]['y']
 
             recv_task = asyncio.create_task(receiver())
             running = True
@@ -55,12 +58,19 @@ class Client:
                 offset_y = HEIGHT // 2 - self.y
                 # Draw players
                 for ws_id, pos in self.players.items():
-                    color = (255, 0, 0) if ws_id == str(id(websocket)) else (0, 255, 0)
+                    color = (255, 0, 0) if ws_id == self.self_id else (0, 255, 0)
                     pygame.draw.circle(
                         self.screen,
                         color,
                         (pos['x'] + offset_x, pos['y'] + offset_y),
                         10
+                    )
+                for ai_id, pos in self.ais.items():
+                    pygame.draw.circle(
+                        self.screen,
+                        (0, 128, 255),
+                        (pos['x'] + offset_x, pos['y'] + offset_y),
+                        pos.get('size', 30)
                     )
                 pygame.display.flip()
                 self.clock.tick(60)
